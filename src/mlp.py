@@ -2,8 +2,10 @@ import torch as t
 import torch.nn as nn
 from torch import Tensor
 import einops
+from transformer_lens import HookedTransformer
 from jaxtyping import Float, Int
 from src.config import Config
+from tests.mlp_tests import rand_float_test, load_gpt2_test
 from transformer_lens.utils import gelu_new
 
 class MLP(nn.Module):
@@ -38,3 +40,14 @@ class MLP(nn.Module):
             + self.b_out
         )
         return out
+
+
+if __name__ == "__main__":
+    reference_gpt2 = HookedTransformer.from_pretrained(
+        "gpt2-small",
+        fold_ln=False,
+        center_unembed=False,
+        center_writing_weights=False,
+    )
+    rand_float_test(MLP, [2, 4, 768])
+    # load_gpt2_test(MLP, reference_gpt2.blocks[0].mlp, cache["normalized", 0, "ln2"])
